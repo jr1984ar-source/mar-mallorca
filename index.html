@@ -67,6 +67,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .next-update{font-size:12px;color:rgba(255,255,255,.4);text-align:center;margin-top:28px}
 .footer{font-size:10px;color:rgba(255,255,255,.22);text-align:right;margin-top:8px}
 @media(max-width:540px){.tab-btn{font-size:10px;padding:9px 3px}.beach-grid{grid-template-columns:1fr}}
+
+.cam-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  margin-top: 11px;
+  padding: 9px 0;
+  background: rgba(220, 38, 38, 0.18);
+  border: 0.5px solid rgba(248,113,113,0.4);
+  border-radius: 10px;
+  color: #fca5a5;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.cam-btn:hover { background: rgba(220,38,38,0.30); }
+.cam-btn i { font-size: 15px; }
+.cam-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #f87171;
+  animation: pulse 1.2s infinite;
+  flex-shrink: 0;
+}
 </style>
 </head>
 <body>
@@ -166,20 +196,20 @@ const BEACH_IMGS={
 
 const ZONES=[
   {id:0,beaches:[
-    {name:'Son Maties',imgKey:'son_maties',lat:39.529,lon:2.583},
-    {name:'Portals Nous',imgKey:'portals_nous',lat:39.539,lon:2.604},
+    {name:'Son Maties',imgKey:'son_maties',lat:39.529,lon:2.583,cam:'https://www.youtube.com/watch?v=JGN3p2GZ45U'},
+    {name:'Portals Nous',imgKey:'portals_nous',lat:39.539,lon:2.604,cam:null},
   ]},
   {id:1,beaches:[
-    {name:'Cala Egos',imgKey:'cala_egos',lat:39.521,lon:2.359},
-    {name:'Cala Llamp',imgKey:'cala_llamp',lat:39.525,lon:2.380},
+    {name:'Cala Egos',imgKey:'cala_egos',lat:39.521,lon:2.359,cam:'https://www.youtube.com/watch?v=0ioyYnGw3Bs'},
+    {name:'Cala Llamp',imgKey:'cala_llamp',lat:39.525,lon:2.380,cam:'https://www.youtube.com/watch?v=2slzhBxnb2o'},
   ]},
   {id:2,beaches:[
-    {name:'Playa Es Trenc',imgKey:'es_trenc',lat:39.340,lon:2.975},
+    {name:'Playa Es Trenc',imgKey:'es_trenc',lat:39.340,lon:2.975,cam:null},
     {name:'Playa Es Carb\u00f3',imgKey:'es_carbo',lat:39.356,lon:2.960},
   ]},
   {id:3,beaches:[
-    {name:'Playa de Muro',imgKey:'playa_muro',lat:39.795,lon:3.107},
-    {name:'Son Serra de Marina',imgKey:'son_serra',lat:39.729,lon:3.191},
+    {name:'Playa de Muro',imgKey:'playa_muro',lat:39.795,lon:3.107,cam:'https://www.youtube.com/watch?v=oTmldDggz8c'},
+    {name:'Son Serra de Marina',imgKey:'son_serra',lat:39.729,lon:3.191,cam:'https://www.youtube.com/watch?v=j3Plld0xBSs'},
   ]},
 ];
 function degToDir(d){return['N','NE','E','SE','S','SO','O','NO'][Math.round(d/45)%8];}
@@ -242,6 +272,11 @@ function renderCard(b,d){
         <div class="sky-block"><div class="sky-icon">${skyIcon(d.cloudCover)}</div><div class="sky-val">${d.cloudCover}%</div><div class="sky-lbl">Nubes</div></div>
         <div class="sky-block"><div class="sky-icon"><i class="ti ti-${d.cloudCover<30?'sun':d.cloudCover<70?'cloud-sun':'cloud-rain'}" style="font-size:20px;color:${d.cloudCover<30?'#fbbf24':d.cloudCover<70?'#fde68a':'#93c5fd'}"></i></div><div class="sky-val">${cloudLabel(d.cloudCover)}</div><div class="sky-lbl">Cielo</div></div>
       </div>
+      ${b.cam ? `<a class="cam-btn" href="${b.cam}" target="_blank" rel="noopener">
+        <span class="cam-dot"></span>
+        <i class="ti ti-video" aria-hidden="true"></i>
+        VER WEBCAM EN DIRECTO
+      </a>` : ''}
     </div>
   </div>`;
 }
