@@ -27,7 +27,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .refresh-btn:hover{background:rgba(255,255,255,.25)}
 
 /* TABS */
-.zone-tabs{display:flex;margin-bottom:18px;background:rgba(0,0,0,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:0.5px solid rgba(255,255,255,.15);border-radius:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.zone-tabs-wrap{position:relative;margin-bottom:18px;}
+.zone-tabs-wrap::after{content:'›';position:absolute;right:0;top:0;bottom:0;width:32px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,.7);background:linear-gradient(to right,transparent,rgba(0,0,0,.55));border-radius:0 12px 12px 0;pointer-events:none;transition:opacity .3s;}
+.zone-tabs-wrap.at-end::after{opacity:0;}
+.zone-tabs{display:flex;background:rgba(0,0,0,.28);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:0.5px solid rgba(255,255,255,.15);border-radius:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .zone-tabs::-webkit-scrollbar{display:none}
 .tab-btn{flex-shrink:0;padding:10px 12px;font-size:12px;font-weight:600;background:transparent;border:none;border-right:0.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit;transition:background .15s,color .15s;white-space:nowrap}
 .tab-btn:last-child{border-right:none}
@@ -103,7 +106,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     <button class="refresh-btn" onclick="loadAll()"><i class="ti ti-refresh"></i>Actualizar</button>
   </div>
 
-  <div class="zone-tabs">
+  <div class="zone-tabs-wrap" id="tabs-wrap">
+  <div class="zone-tabs" id="zone-tabs" onscroll="checkTabsScroll()">
     <button class="tab-btn active" onclick="showZone(0,this)">Palmanova</button>
     <button class="tab-btn" onclick="showZone(1,this)">Port Andratx</button>
     <button class="tab-btn" onclick="showZone(2,this)">Sant Jordi</button>
@@ -111,6 +115,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     <button class="tab-btn" onclick="showZone(4,this)">Sóller</button>
     <button class="tab-btn" onclick="showZone(5,this)">Costa Este</button>
     <button class="tab-btn" onclick="showZone(6,this)">🗺️ Mapa</button>
+  </div>
   </div>
 
   <div id="zone-0" class="beach-grid"></div>
@@ -312,6 +317,15 @@ function project(lat,lon,W,H){
   return{px:W/2+(tx-cx)*TILE,py:H/2+(ty-cy)*TILE};
 }
 
+var tileCache={};
+var buildScheduled=false;
+
+function scheduleBuild(){
+  if(buildScheduled)return;
+  buildScheduled=true;
+  requestAnimationFrame(function(){buildScheduled=false;buildMap();});
+}
+
 function buildMap(){
   var el=document.getElementById('mallorca-map');
   if(!el)return;
@@ -320,19 +334,30 @@ function buildMap(){
   var cx=(viewState.lon+180)/360*n;
   var clr=viewState.lat*Math.PI/180;
   var cy=(1-Math.log(Math.tan(clr)+1/Math.cos(clr))/Math.PI)/2*n;
-  var x0=Math.floor(cx-W/2/TILE),x1=Math.ceil(cx+W/2/TILE);
-  var y0=Math.floor(cy-H/2/TILE),y1=Math.ceil(cy+H/2/TILE);
+  var x0=Math.floor(cx-W/2/TILE)-1,x1=Math.ceil(cx+W/2/TILE)+1;
+  var y0=Math.floor(cy-H/2/TILE)-1,y1=Math.ceil(cy+H/2/TILE)+1;
 
   // Remove old tiles and markers but keep zoom buttons
-  Array.from(el.children).forEach(function(c){if(!c.classList.contains('map-zoom-btns')&&!c.classList.contains('map-popup'))el.removeChild(c);});
+  Array.from(el.children).forEach(function(c){
+    if(!c.classList.contains('map-zoom-btns')&&!c.classList.contains('map-popup'))
+      el.removeChild(c);
+  });
 
   for(var tx=x0;tx<=x1;tx++){
     for(var ty=y0;ty<=y1;ty++){
-      var img=document.createElement('img');
+      var key=viewState.zoom+'/'+((ty%n+n)%n)+'/'+((tx%n+n)%n);
+      var img;
+      if(tileCache[key]){
+        img=document.createElement('img');
+        img.src=tileCache[key].src;
+      } else {
+        img=document.createElement('img');
+        img.src='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/'+key;
+        (function(k,i){i.onload=function(){tileCache[k]=i;};})(key,img);
+      }
       var left=Math.round(W/2+(tx-cx)*TILE);
       var top=Math.round(H/2+(ty-cy)*TILE);
       img.style.cssText='position:absolute;width:'+TILE+'px;height:'+TILE+'px;left:'+left+'px;top:'+top+'px;';
-      img.src='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/'+viewState.zoom+'/'+((ty%n+n)%n)+'/'+((tx%n+n)%n);
       el.appendChild(img);
     }
   }
@@ -374,7 +399,7 @@ function buildMap(){
     var cy0=(1-Math.log(Math.tan(drag.lat*Math.PI/180)+1/Math.cos(drag.lat*Math.PI/180))/Math.PI)/2*n;
     var lr=Math.atan(Math.sinh(Math.PI*(1-2*(cy0+(e.clientY-drag.y)/TILE)/n)));
     viewState.lat=lr*180/Math.PI;
-    buildMap();
+    scheduleBuild();
   };
   el.onmouseup=el.onmouseleave=function(){drag=null;};
   el.ontouchstart=function(e){touch0={x:e.touches[0].clientX,y:e.touches[0].clientY,lat:viewState.lat,lon:viewState.lon};};
@@ -385,7 +410,7 @@ function buildMap(){
     var cy0=(1-Math.log(Math.tan(touch0.lat*Math.PI/180)+1/Math.cos(touch0.lat*Math.PI/180))/Math.PI)/2*n;
     var lr=Math.atan(Math.sinh(Math.PI*(1-2*(cy0+(e.touches[0].clientY-touch0.y)/TILE)/n)));
     viewState.lat=lr*180/Math.PI;
-    buildMap();
+    scheduleBuild();
   };
   el.ontouchend=function(){touch0=null;};
 }
@@ -416,6 +441,16 @@ async function initMap(){
   buildMap();
   document.getElementById('map-status').textContent='Toca un punto para ver los datos';
 }
+
+// ── TABS SCROLL INDICATOR ──
+function checkTabsScroll(){
+  var tabs=document.getElementById('zone-tabs');
+  var wrap=document.getElementById('tabs-wrap');
+  if(!tabs||!wrap)return;
+  var atEnd=tabs.scrollLeft+tabs.clientWidth>=tabs.scrollWidth-4;
+  wrap.classList.toggle('at-end',atEnd);
+}
+setTimeout(checkTabsScroll,300);
 
 // ── SWIPE ──
 (function(){
