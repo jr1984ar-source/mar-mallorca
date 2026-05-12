@@ -188,11 +188,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     </div>
     <button class="refresh-btn" onclick="loadAll()"><i class="ti ti-refresh"></i>Actualizar</button>
   </div>
-  <div class="zone-tabs">
+  <div class="zone-tabs" id="zone-tabs">
     <button class="tab-btn active" onclick="showZone(0,this)">Palmanova</button>
     <button class="tab-btn" onclick="showZone(1,this)">Port Andratx</button>
-    <button class="tab-btn" onclick="showZone(2,this)">Col. Sant Jordi</button>
-    <button class="tab-btn" onclick="showZone(3,this)">Alc&uacute;dia</button>
+    <button class="tab-btn" onclick="showZone(2,this)">Sant Jordi</button>
+    <button class="tab-btn" onclick="showZone(3,this)">Alcúdia</button>
+    <button class="tab-btn" onclick="showZone(4,this)">Sóller</button>
+    <button class="tab-btn" onclick="showZone(5,this)">Costa Este</button>
+    <button class="tab-btn" onclick="showZone(6,this)">🗺️ Mapa</button>
   </div>
   <div id="zone-0" class="beach-grid"></div>
   <div id="zone-1" class="beach-grid" style="display:none"></div>
