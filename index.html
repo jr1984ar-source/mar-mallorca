@@ -148,6 +148,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
       </div>
       <div id="mallorca-map"></div>
       <p id="map-status">Toca 🗺️ Mapa para cargar</p>
+      <p style="font-size:9px;color:rgba(255,255,255,.25);text-align:right;margin-top:4px">© <a href="https://www.openstreetmap.org/copyright" style="color:rgba(255,255,255,.3)">OpenStreetMap</a></p>
     </div>
   </div>
 
@@ -370,8 +371,14 @@ function buildMap(){
         img.src=tileCache[key].src;
       } else {
         img=document.createElement('img');
-        img.src='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/'+key;
-        (function(k,i){i.onload=function(){tileCache[k]=i;};})(key,img);
+        img.src='https://tile.openstreetmap.org/'+key+'.png';
+        (function(k,i){i.onload=function(){
+  if(Object.keys(tileCache).length>150){
+    var keys=Object.keys(tileCache);
+    delete tileCache[keys[0]];
+  }
+  tileCache[k]=i;
+};})(key,img);
       }
       var left=Math.round(W/2+(tx-cx)*TILE);
       var top=Math.round(H/2+(ty-cy)*TILE);
@@ -403,7 +410,7 @@ function buildMap(){
     var zd=document.createElement('div');
     zd.className='map-zoom-btns';
     zd.style.cssText='position:absolute;bottom:16px;right:16px;z-index:50;display:flex;flex-direction:column;gap:4px;';
-    zd.innerHTML='<button onclick="viewState.zoom=Math.min(14,viewState.zoom+1);buildMap();" style="width:32px;height:32px;border-radius:8px;background:rgba(10,22,40,.85);border:0.5px solid rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;">+</button>'+
+    zd.innerHTML='<button onclick="viewState.zoom=Math.min(13,viewState.zoom+1);buildMap();" style="width:32px;height:32px;border-radius:8px;background:rgba(10,22,40,.85);border:0.5px solid rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;">+</button>'+
       '<button onclick="viewState.zoom=Math.max(8,viewState.zoom-1);buildMap();" style="width:32px;height:32px;border-radius:8px;background:rgba(10,22,40,.85);border:0.5px solid rgba(255,255,255,.2);color:#fff;font-size:18px;cursor:pointer;">−</button>';
     el.appendChild(zd);
   }
